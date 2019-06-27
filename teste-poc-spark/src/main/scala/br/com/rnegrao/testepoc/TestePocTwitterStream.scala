@@ -58,7 +58,7 @@ object TestePocTwitterStream extends App with CassandraConfig {
   def coletarDados() = {
 
     // definindo o tempo de duracao de captura de dados do tweets
-    val windowDuration: Duration = Seconds(60)
+    val windowDuration: Duration = Minutes(30)
 
     val timeoutDuration = Seconds(60 * 5)
 
