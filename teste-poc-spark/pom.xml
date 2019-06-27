@@ -80,31 +80,33 @@
             <groupId>org.apache.spark</groupId>
             <artifactId>spark-core_${scala.binary.version}</artifactId>
             <version>${spark.version}</version>
-            <!--            <scope>provided</scope>-->
+            <scope>provided</scope>
         </dependency>
 
         <dependency>
             <groupId>org.apache.spark</groupId>
             <artifactId>spark-sql_${scala.binary.version}</artifactId>
             <version>${spark.version}</version>
-            <!--            <scope>provided</scope>-->
+            <scope>provided</scope>
         </dependency>
 
         <dependency>
             <groupId>org.apache.spark</groupId>
             <artifactId>spark-tags_${scala.binary.version}</artifactId>
             <version>${spark.version}</version>
-        </dependency>
-
-        <dependency>
-            <groupId>org.apache.spark</groupId>
-            <artifactId>spark-sql-kafka-0-10_${scala.binary.version}</artifactId>
-            <version>${spark.version}</version>
+            <scope>provided</scope>
         </dependency>
 
         <dependency>
             <groupId>org.apache.spark</groupId>
             <artifactId>spark-streaming_${scala.binary.version}</artifactId>
+            <version>${spark.version}</version>
+            <scope>provided</scope>
+        </dependency>
+
+        <dependency>
+            <groupId>org.apache.spark</groupId>
+            <artifactId>spark-sql-kafka-0-10_${scala.binary.version}</artifactId>
             <version>${spark.version}</version>
         </dependency>
 
@@ -138,19 +140,18 @@
             <version>2.4.1</version>
         </dependency>
 
-
         <dependency>
             <groupId>org.scala-lang</groupId>
             <artifactId>scala-library</artifactId>
             <version>${scala.version}</version>
-<!--            <scope>provided</scope>-->
+            <scope>provided</scope>
         </dependency>
 
         <dependency>
             <groupId>org.scala-lang</groupId>
             <artifactId>scala-reflect</artifactId>
             <version>${scala.version}</version>
-<!--            <scope>provided</scope>-->
+            <scope>provided</scope>
         </dependency>
 
         <dependency>
@@ -182,6 +183,70 @@
 
 
     </dependencies>
+
+    <profiles>
+        <profile>
+            <id>dev</id>
+            <dependencies>
+
+                <dependency>
+                    <groupId>org.apache.spark</groupId>
+                    <artifactId>spark-core_${scala.binary.version}</artifactId>
+                    <version>${spark.version}</version>
+                </dependency>
+
+                <dependency>
+                    <groupId>org.apache.spark</groupId>
+                    <artifactId>spark-sql_${scala.binary.version}</artifactId>
+                    <version>${spark.version}</version>
+                </dependency>
+
+                <dependency>
+                    <groupId>org.apache.spark</groupId>
+                    <artifactId>spark-tags_${scala.binary.version}</artifactId>
+                    <version>${spark.version}</version>
+                </dependency>
+
+                <dependency>
+                    <groupId>org.apache.spark</groupId>
+                    <artifactId>spark-streaming_${scala.binary.version}</artifactId>
+                    <version>${spark.version}</version>
+                </dependency>
+
+                <dependency>
+                    <groupId>org.scala-lang</groupId>
+                    <artifactId>scala-library</artifactId>
+                    <version>${scala.version}</version>
+                </dependency>
+
+                <dependency>
+                    <groupId>org.scala-lang</groupId>
+                    <artifactId>scala-reflect</artifactId>
+                    <version>${scala.version}</version>
+                </dependency>
+
+            </dependencies>
+        </profile>
+        <profile>
+            <id>prepare-deploy</id>
+            <build>
+                <plugins>
+                    <plugin>
+                        <groupId>org.apache.maven.plugins</groupId>
+                        <artifactId>maven-shade-plugin</artifactId>
+                        <executions>
+                            <execution>
+                                <phase>package</phase>
+                                <goals>
+                                    <goal>shade</goal>
+                                </goals>
+                            </execution>
+                        </executions>
+                    </plugin>
+                </plugins>
+            </build>
+        </profile>
+    </profiles>
 
     <build>
         <sourceDirectory>src/main/scala</sourceDirectory>
@@ -226,30 +291,6 @@
 
         </plugins>
     </build>
-
-
-    <profiles>
-
-        <profile>
-            <id>dev</id>
-            <build>
-                <plugins>
-                    <plugin>
-                        <groupId>org.apache.maven.plugins</groupId>
-                        <artifactId>maven-shade-plugin</artifactId>
-                        <executions>
-                            <execution>
-                                <phase>package</phase>
-                                <goals>
-                                    <goal>shade</goal>
-                                </goals>
-                            </execution>
-                        </executions>
-                    </plugin>
-                </plugins>
-            </build>
-        </profile>
-    </profiles>
 
     <reporting>
         <plugins>
