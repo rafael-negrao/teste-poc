@@ -58,9 +58,9 @@ object TestePocTwitterStream extends App with CassandraConfig {
   def coletarDados() = {
 
     // definindo o tempo de duracao de captura de dados do tweets
-    val windowDuration: Duration = Minutes(30)
+    val windowDuration: Duration = Minutes(45)
 
-    val timeoutDuration = Seconds(60 * 5)
+    val timeoutDuration = Minutes(45 * 5)
 
     val ssc = new StreamingContext(sc, Seconds(10))
 
@@ -148,7 +148,7 @@ object TestePocTwitterStream extends App with CassandraConfig {
           .toDF("id", "users")
           .write
           .cassandraFormat("top5followerstweets", "testepoc")
-          .mode(SaveMode.Overwrite)
+          .mode(SaveMode.Append)
           .save()
       }
     })
