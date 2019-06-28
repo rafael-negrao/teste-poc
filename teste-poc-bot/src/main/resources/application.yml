@@ -1,0 +1,30 @@
+spring:
+  application:
+    name: teste-poc-web
+  profiles:
+    active: local
+
+version: $project.version$
+
+server:
+  port: 8081
+
+---
+spring:
+  profiles: local
+
+telegram:
+  token: 821800740:AAH-8JE0y2GsGs1VmIVg3Pf1RwKXN-AFU3M
+
+tweets:
+  url: http://localhost:8080/
+
+---
+spring:
+  profiles: docker
+
+telegram:
+  token: ${TOKEN_API_TELEGRAM}
+
+tweets:
+  url: http://teste-poc-web:8080/
