@@ -2,10 +2,11 @@ package br.com.rnegrao.testepoc.rascunho
 
 import java.util.Properties
 
-import br.com.rnegrao.testepoc.cassandra.CassandraConfig
+import br.com.rnegrao.testepoc.cassandra.{CassandraConfig, CassandraSinkForeach}
 import br.com.rnegrao.testepoc.twitter.TwitterConfig
 import com.google.gson.GsonBuilder
 import org.apache.kafka.clients.consumer.ConsumerConfig
+import org.apache.spark.sql.streaming.OutputMode
 import org.apache.spark.sql.types.{StringType, StructField, StructType}
 import org.apache.spark.sql.{Row, SaveMode, SparkSession}
 import org.apache.spark.storage.StorageLevel
@@ -65,32 +66,8 @@ object TestePocRascunho1Stream extends TwitterConfig with CassandraConfig {
     val tweetsKafkaDF = tweetsKafkaStream
       .createOrReplaceTempView("raw_tweets")
 
-    val tweetsViewDF = sqlContext.sql(
-      """
-        | SELECT *
-        |   FROM raw_tweets
-        |  LIMIT 5
-      """.stripMargin)
-    tweetsViewDF.toJSON
-    tweetsViewDF.printSchema()
-
-    tweetsKafkaStream
-      .writeStream
-      .format("console")
-      .outputMode("append")
-      .start()
-      .awaitTermination(KAFKA_TIMEOUT)
-
-    //val tweetsJsonDF = sparkSession.read.json(tweetsKafkaDF.map(_.getString(0))(Encoders.STRING))
-
-//    tweetsJsonDF.printSchema()
-//    tweetsJsonDF.show()
-
-
-
-
-//    tweetsKafkaDF.createOrReplaceTempView("tweets")
-
+//    tweetsKafkaStream.createOrReplaceTempView("tweets")
+//
 //    val sqlContext = sparkSession.sqlContext
 //
 //    val top5followersTweetsViewDF = sqlContext.sql(
@@ -101,7 +78,6 @@ object TestePocRascunho1Stream extends TwitterConfig with CassandraConfig {
 //        |  LIMIT 5
 //      """.stripMargin)
 //
-//    top5followersTweetsViewDF.show()
 //    top5followersTweetsViewDF
 //      .writeStream
 //      .foreach(new CassandraSinkForeach(sparkSession) {
@@ -124,7 +100,7 @@ object TestePocRascunho1Stream extends TwitterConfig with CassandraConfig {
 //        | GROUP BY createdAt2
 //      """.stripMargin)
 //
-//    countTweetsByYyyyMmDdHhDf.show()
+//
 //    countTweetsByYyyyMmDdHhDf
 //      .writeStream
 //      .foreach(new CassandraSinkForeach(sparkSession) {
@@ -148,7 +124,6 @@ object TestePocRascunho1Stream extends TwitterConfig with CassandraConfig {
 //        | ORDER BY hashtag_count desc LIMIT 10
 //      """.stripMargin)
 //
-//    countHashtagsByYyyyMMDDHH.show()
 //    countHashtagsByYyyyMMDDHH
 //      .writeStream
 //      .foreach(new CassandraSinkForeach(sparkSession) {

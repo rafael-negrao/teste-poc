@@ -1,4 +1,4 @@
-package br.com.rnegrao.testepoc.application.service.impl;
+package br.com.rnegrao.testepoc.application.listener;
 
 import br.com.rnegrao.testepoc.infra.service.TweetsServiceClient;
 import com.pengrad.telegrambot.TelegramBot;
@@ -24,9 +24,9 @@ import static java.util.Objects.nonNull;
 import static java.util.Optional.of;
 
 @Service
-public class TelegramBotListenerServiceImpl {
+public class TelegramBotListener {
 
-    private final Logger logger = LoggerFactory.getLogger(TelegramBotListenerServiceImpl.class);
+    private final Logger logger = LoggerFactory.getLogger(TelegramBotListener.class);
 
     @Autowired
     private TelegramBot telegramBot;
