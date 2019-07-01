@@ -12,7 +12,7 @@ import org.apache.spark.sql.{SaveMode, SparkSession}
 import org.apache.spark.storage.StorageLevel
 import org.apache.spark.streaming.dstream.DStream
 import org.apache.spark.streaming.twitter.TwitterUtils
-import org.apache.spark.streaming.{Duration, Seconds, StreamingContext}
+import org.apache.spark.streaming.{Duration, Minutes, Seconds, StreamingContext}
 import twitter4j.auth.OAuthAuthorization
 import twitter4j.conf.ConfigurationBuilder
 import twitter4j.{FilterQuery, Status}
@@ -68,13 +68,13 @@ object ConsumerTwitterStream extends App with CassandraConfig {
   def coletarDados() = {
 
     // definindo o tempo de duracao de captura de dados do tweets
-    val windowDuration: Duration = Seconds(5)
+    val windowDuration: Duration = Minutes(1)
 
-    val slideDuration: Duration = Seconds(1)
+    val slideDuration: Duration = Seconds(15)
 
-    val timeoutDuration = Seconds(100)
+    val timeoutDuration = Minutes(5)
 
-    val ssc = new StreamingContext(sc, Seconds(1))
+    val ssc = new StreamingContext(sc, Seconds(30))
 
     val tweets = getTweetsStream(ssc).filter(_.getLang == "pt")
 
