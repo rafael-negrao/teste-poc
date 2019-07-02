@@ -18,6 +18,7 @@ import twitter4j.conf.ConfigurationBuilder
 import twitter4j.{FilterQuery, Status}
 
 
+
 /**
   * @args
   *      <ul>
@@ -44,9 +45,8 @@ object ConsumerTwitterStream extends App with CassandraConfig {
   val spark = SparkSession
     .builder()
     .appName("teste-poc-twitter-cassandra")
-    .config("spark.master", "local")
+    .config("spark.master", "local[4]")
     .config("spark.driver.allowMultipleContexts", true)
-    .config("spark.streaming.concurrentJobs", "10")
     .config("spark.cassandra.connection.host", hostCassandra)
     .config("spark.cassandra.connection.port", "9042")
     .getOrCreate()
@@ -68,23 +68,27 @@ object ConsumerTwitterStream extends App with CassandraConfig {
   def coletarDados() = {
 
     // definindo o tempo de duracao de captura de dados do tweets
-    val windowDuration: Duration = Minutes(1)
+    val windowDuration: Duration = Seconds(30)
 
-    val slideDuration: Duration = Seconds(15)
+    val slideDuration: Duration = Seconds(1)
 
-    val timeoutDuration = Minutes(5)
+    val timeoutDuration = Minutes(1)
 
-    val ssc = new StreamingContext(sc, Seconds(30))
+    val ssc = new StreamingContext(sc, Seconds(1))
 
-    val tweets = getTweetsStream(ssc).filter(_.getLang == "pt")
+    val tweets = getTweetsStream(ssc)
 
-    debugTweets(tweets)
+    val tweetsLangPt = tweets.filter(_.getLang == "pt")
+
+    debugTweets(tweetsLangPt)
 
     args(1).toUpperCase match {
-      case "USUARIOS_COM_MAIS_SEGUIDORES" => agruparUsuariosComMaisSeguidores(windowDuration, slideDuration, tweets)
-      case "HASHTAGS_MAIS_POPULARES" => agruparHashtagsMaisPopulares(windowDuration, slideDuration, tweets)
-      case "HASHTAGS_POR_HORA" => agruparHashtagsPorHora(windowDuration, slideDuration, tweets)
+      case "USUARIOS_COM_MAIS_SEGUIDORES" => agruparUsuariosComMaisSeguidores(windowDuration, slideDuration, tweetsLangPt)
+      case "HASHTAGS_MAIS_POPULARES" => agruparHashtagsMaisPopulares(windowDuration, slideDuration, tweetsLangPt)
+      case "HASHTAGS_POR_HORA" => agruparHashtagsPorHora(windowDuration, slideDuration, tweetsLangPt)
     }
+
+    tweets.print()
 
     ssc.start()
     ssc.awaitTerminationOrTimeout(timeoutDuration.milliseconds)
@@ -139,8 +143,8 @@ object ConsumerTwitterStream extends App with CassandraConfig {
 
     // recuperando a quantidade de usuarios com mais seguidores
     val users = tweets
+      .window(duration)
       .map(status => (status.getUser().getFollowersCount(), status.getUser().getScreenName()))
-      .window(duration, slideDuration)
       .transform(_.sortByKey(false))
 
     users.foreachRDD(rdd => {
@@ -171,7 +175,7 @@ object ConsumerTwitterStream extends App with CassandraConfig {
 
     val topHashTags = hashTags
       .map((_, 1))
-      .reduceByKeyAndWindow((x: Int, y: Int) => x + y, duration, slideDuration)
+      .reduceByKeyAndWindow((x: Int, y: Int) => x + y, duration)
       .map({case (hashtag, count) => (count, hashtag)})
       .transform(_.sortByKey(false))
 
@@ -198,7 +202,7 @@ object ConsumerTwitterStream extends App with CassandraConfig {
     // preparando para agrupadas por hora do dia (independentemente da #hashtag)
     val topHashTagsByHours = tweets
       .map(status => (new SimpleDateFormat("yyyy-MM-dd HH").format(status.getCreatedAt), status.getText.split(" ").count(_.startsWith("#"))))
-      .reduceByKeyAndWindow((x: Int, y: Int) => x + y, duration, slideDuration)
+      .reduceByKeyAndWindow((x: Int, y: Int) => x + y, duration)
       .map({case (topic, count) => (count, topic)})
       .transform(_.sortByKey(false))
 
