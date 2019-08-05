@@ -66,76 +66,75 @@ object TestePocRascunho1Stream extends TwitterConfig with CassandraConfig {
     val tweetsKafkaDF = tweetsKafkaStream
       .createOrReplaceTempView("raw_tweets")
 
-//    tweetsKafkaStream.createOrReplaceTempView("tweets")
-//
-//    val sqlContext = sparkSession.sqlContext
-//
-//    val top5followersTweetsViewDF = sqlContext.sql(
-//      """
-//        | SELECT user.name, user.followersCount
-//        |   FROM tweets
-//        |  ORDER BY user.followersCount DESC
-//        |  LIMIT 5
-//      """.stripMargin)
-//
-//    top5followersTweetsViewDF
-//      .writeStream
-//      .foreach(new CassandraSinkForeach(sparkSession) {
-//        override def cql(record: Row): String = {
-//           s"""
-//               | insert testepoc.top5followersTweets(username, followersCount)
-//               | values ('${record(0)}', ${record(1)})"
-//             """.stripMargin
-//        }
-//      })
-//      .outputMode(OutputMode.Update())
-//      .start()
-//
-//    val countTweetsByYyyyMmDdHhDf = sqlContext.sql(
-//      """
-//        | SELECT
-//        |      date_format(to_timestamp(createdAt, 'MMM dd, yyyy hh:mm:ss aaa'), 'yyyy-MM-dd HH') createdAt2,
-//        |      COUNT(1) countTweets
-//        |   FROM tweets
-//        | GROUP BY createdAt2
-//      """.stripMargin)
-//
-//
-//    countTweetsByYyyyMmDdHhDf
-//      .writeStream
-//      .foreach(new CassandraSinkForeach(sparkSession) {
-//        override def cql(record: Row): String = {
-//          s"""
-//             | insert testepoc.countTweets(createdAt, countTweets)
-//             | values ('${record(0)}', ${record(1)})"
-//             """.stripMargin
-//        }
-//      })
-//      .outputMode(OutputMode.Update())
-//      .start()
-//
-//    val countHashtagsByYyyyMMDDHH = sqlContext.sql(
-//      """
-//        |   SELECT hashtag, count(1) as hashtag_count
-//        |     FROM tweets t
-//        |          LATERAL VIEW explode(split(regexp_replace(trim(upper(t.text)),"[^#A-Za-z0-9]"," "), ' ')) v1 as hashtag
-//        |    WHERE hashtag rlike "^#[a-zA-Z0-9]+$"
-//        | GROUP BY hashtag
-//        | ORDER BY hashtag_count desc LIMIT 10
-//      """.stripMargin)
-//
-//    countHashtagsByYyyyMMDDHH
-//      .writeStream
-//      .foreach(new CassandraSinkForeach(sparkSession) {
-//        override def cql(record: Row): String = {
-//          s"""
-//             | insert testepoc.countHashtags(hashtag, countHashtag)
-//             | values ('${record(0)}', ${record(1)})"
-//             """.stripMargin
-//        }
-//      })
-//      .outputMode(OutputMode.Update())
-//      .start()
+    tweetsKafkaStream.createOrReplaceTempView("tweets")
+
+
+    val top5followersTweetsViewDF = sqlContext.sql(
+      """
+        | SELECT user.name, user.followersCount
+        |   FROM tweets
+        |  ORDER BY user.followersCount DESC
+        |  LIMIT 5
+      """.stripMargin)
+
+    top5followersTweetsViewDF
+      .writeStream
+      .foreach(new CassandraSinkForeach(sparkSession) {
+        override def cql(record: Row): String = {
+           s"""
+               | insert testepoc.top5followersTweets(username, followersCount)
+               | values ('${record(0)}', ${record(1)})"
+             """.stripMargin
+        }
+      })
+      .outputMode(OutputMode.Update())
+      .start()
+
+    val countTweetsByYyyyMmDdHhDf = sqlContext.sql(
+      """
+        | SELECT
+        |      date_format(to_timestamp(createdAt, 'MMM dd, yyyy hh:mm:ss aaa'), 'yyyy-MM-dd HH') createdAt2,
+        |      COUNT(1) countTweets
+        |   FROM tweets
+        | GROUP BY createdAt2
+      """.stripMargin)
+
+
+    countTweetsByYyyyMmDdHhDf
+      .writeStream
+      .foreach(new CassandraSinkForeach(sparkSession) {
+        override def cql(record: Row): String = {
+          s"""
+             | insert testepoc.countTweets(createdAt, countTweets)
+             | values ('${record(0)}', ${record(1)})"
+             """.stripMargin
+        }
+      })
+      .outputMode(OutputMode.Update())
+      .start()
+
+    val countHashtagsByYyyyMMDDHH = sqlContext.sql(
+      """
+        |   SELECT hashtag, count(1) as hashtag_count
+        |     FROM tweets t
+        |          LATERAL VIEW explode(split(regexp_replace(trim(upper(t.text)),"[^#A-Za-z0-9]"," "), ' ')) v1 as hashtag
+        |    WHERE hashtag rlike "^#[a-zA-Z0-9]+$"
+        | GROUP BY hashtag
+        | ORDER BY hashtag_count desc LIMIT 10
+      """.stripMargin)
+
+    countHashtagsByYyyyMMDDHH
+      .writeStream
+      .foreach(new CassandraSinkForeach(sparkSession) {
+        override def cql(record: Row): String = {
+          s"""
+             | insert testepoc.countHashtags(hashtag, countHashtag)
+             | values ('${record(0)}', ${record(1)})"
+             """.stripMargin
+        }
+      })
+      .outputMode(OutputMode.Update())
+      .start()
   }
 
   // https://github.com/epishova/Structured-Streaming-Cassandra-Sink/blob/master/blog_draft.md
